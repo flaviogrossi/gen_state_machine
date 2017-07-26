@@ -621,7 +621,18 @@ defmodule GenStateMachine do
         :undefined
       end
 
-      overridable_funcs = [init: 1, terminate: 3, code_change: 4]
+      @doc false
+      def child_spec(arg) do
+        %{
+          id: __MODULE__,
+          start: {__MODULE__, :start_link, [arg]},
+          restart: :permanent,
+          shutdown: 5000,
+          type: :worker
+        }
+      end
+
+      overridable_funcs = [init: 1, terminate: 3, code_change: 4, child_spec: 1]
 
       overridable_funcs =
         if @gen_statem_callback_mode == :handle_event_function do

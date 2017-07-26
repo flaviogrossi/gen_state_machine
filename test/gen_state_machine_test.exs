@@ -33,6 +33,38 @@ defmodule GenStateMachineTest do
     assert GenStateMachine.cast(:foo, {:push, :world}) == :ok
   end
 
+  test "generates child_spec/1" do
+    assert EventFunctionSwitch.child_spec([:arg]) == %{
+      id: EventFunctionSwitch,
+      restart: :permanent,
+      shutdown: 5000,
+      start: {EventFunctionSwitch, :start_link, [[:arg]]},
+      type: :worker
+    }
+
+    defmodule CustomChildSpec do
+      use GenStateMachine
+
+      def child_spec(arg) do
+        %{
+          id: MyCustomId,
+          restart: :temporary,
+          shutdown: :infinity,
+          start: {:module, :function, [arg]},
+          type: :worker
+        }
+      end
+    end
+
+    assert CustomChildSpec.child_spec([:arg1, :arg2]) == %{
+      id: MyCustomId,
+      restart: :temporary,
+      shutdown: :infinity,
+      start: {:module, :function, [[:arg1, :arg2]]},
+      type: :worker
+    }
+  end
+
   defmodule StateFunctionsSwitch do
     use GenStateMachine, callback_mode: :state_functions
 
